@@ -1,0 +1,90 @@
+/**
+    there is simply no weaker condition than requires true 
+    simple algebra dictates that the postcondition will always be true given the implementation
+ */
+method a(x: Int, y: Int) returns (X: Int, Y: Int) 
+    requires true
+    ensures X == y && Y == x
+{
+    X := y - x;
+    Y := y - X;
+    X := Y + X;
+}
+
+/*
+    given that assert x > y
+    and x0 and y0
+    then 
+    x = x0 + y0
+    y = x * y = (x0 + y0) * y0
+    x > y => x0 + y0 > (x0 + y0) * y0 => x0 + y0 - (x0 + y0) * y0 > 0
+    then (x0 + y0) * (1 - y0) > 0
+    so the weakest assumption would be:
+        assume (x + y) * (1 - y) > 0
+ */
+method b() 
+{
+    var x: Int;
+    var y: Int;
+
+    assume (x + y) * (1 - y) > 0;
+
+    x := x + y;
+    y := x * y;
+
+    assert x > y;
+}
+
+/*
+    we must guarantee x > 7 in every possible branch.
+    in the first branch we have y > 5
+    then we do y = x - y
+    so x doesn't change here actually which means that the final x is the initial x
+    to have x > 7 we need the initial x to already be greater than 7
+    in the second branch we have else which means y <= 5
+    then we do x = y - x
+    but we want final x > 7 which means y - x0 > 7 => x0 < y - 7
+    so if y > then x (or x0) > 7 and if y <= 5 then x0 < y - 7
+    so the weakest assumption would be:
+        assume (y > 5 ==> x > 7) && (y <= 5 ==> x < y - 7)
+ */
+method c() 
+{
+    var x: Int;
+    var y: Int;
+
+    assume (y > 5 ==> x > 7) && (y <= 5 ==> x < y - 7);
+
+    if (y > 5) {
+        y := x - y;
+    } else {
+        x := y - x;
+    }
+
+    assert x > 7;
+}
+
+/*
+    given that we always need y to be even
+    then we analyse the two branches
+    if x >= 17 then y = 6 which is even
+    if x < 17 and x > 3 then y = 1 which is odd 
+    if x < 17 and x < 3 <=> x <= 3 the y = 2 which is even 
+    so to avoid y = 1 then we need x to be between 3 and 17 (3 < x < 17)
+    so the weakest precondition would be: 
+        requires x >= 17 || x <= 3
+ */
+method d(x: Int) returns (y: Int)
+    requires x >= 17 || x <= 3
+    ensures y % 2 == 0
+{
+    if (x < 17) {
+        if (x > 3) {
+            y := 1;
+        } else {
+            y := 2;   
+        }
+    } else {
+        y := 6
+    }
+}

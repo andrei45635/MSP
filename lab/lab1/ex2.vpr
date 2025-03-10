@@ -20,3 +20,33 @@ method testMaxSum()
     assert s == 1765;
     assert m == 1723;
 }
+
+method reconstructMaxSum(sum: Int, max: Int) 
+    returns (x: Int, y: Int)
+    requires max >= sum - max     // Precondition: output must be reconstructible
+    ensures x + y == sum
+    // ensures x >= y ==> max == x
+    // ensures x < y  ==> max == y
+    ensures  (x >= y && x == max) || (y >= x && y == max);
+{
+    // We choose the larger value as x and the other as y
+    x := max;
+    y := sum - max;
+}
+
+method testReconstructMaxSum() {
+    // Example input values
+    var originalX: Int := 1723;
+    var originalY: Int := 42;
+    
+    // Get sum and max from maxSum (assuming maxSum is implemented as specified)
+    var s: Int, m: Int;
+    s, m := maxSum(originalX, originalY);
+    // Now use reconstructMaxSum on the outputs of maxSum
+    var x: Int, y: Int;
+    x, y := reconstructMaxSum(s, m);
+    
+    // Verify that reconstructMaxSum returns a correct pair (should recover the original inputs here)
+    assert x + y == s;                      // Sum check (x+y should equal original s)
+    assert (x >= y && m == x) || (x < y && m == y);  // Max-value check consistent with original m
+}

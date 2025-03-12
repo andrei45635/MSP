@@ -7,6 +7,7 @@
 method a(x: Int, y: Int) returns (z: Int)
     requires 0 <= x && x <= y && y < 100
     ensures z == y - x 
+    //ensures z >= 0 && z < 100
 {
     z := y - x;
 }
@@ -28,7 +29,9 @@ method b()
 /*
     we know that x is positive and less than y from the assumption
     so if we add 23 to x then x > 23 && x < y + 23
-    we don't know whether or not y will be positive or negative nor if it will be greater than x or not 
+    if we have x0 > 0 (1) and x0 < y0 (2) then we would have y = y0 - 3 * (x0 + 23)
+    but since know (2) then we have y > x0 - 3 * (x0 + 23) = x0 - 3 * x0 - 69 = -2 * x0 - 69
+    so y > -2 * x0 - 69, but x0 > 0 => y < -69
     so the strongest assertion is : x > 23
  */
 method c()
@@ -42,6 +45,7 @@ method c()
     y := y - 3 * x;
 
     assert x > 23;
+    // assert y < -69 && x > 23;
 }
 
 /*

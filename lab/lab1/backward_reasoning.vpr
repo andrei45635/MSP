@@ -7,8 +7,11 @@ method a(x: Int, y: Int) returns (X: Int, Y: Int)
     ensures X == y && Y == x
 {
     X := y - x;
+	//WP(X := y - x, y == y && (y - X) == x) => (y == y && (y - X) == x)[X/(y - x)] => y == y && (y - y + x) == x => y == y && x == x ==> true 
     Y := y - X;
+	//WP(Y := y - X, (Y + X) == y && Y == x) => ((Y + X) == y && Y == x)[Y/(y - X)] => (y - X + X) == y && (y - X) == x => y == y && (y - X) == x
     X := Y + X;
+	//WP(X := Y + X, X == y && Y == x) => (X == y && Y == x)[X/(Y + X)] => (Y + X) == y && Y == x
 }
 
 /*
@@ -25,15 +28,23 @@ method a(x: Int, y: Int) returns (X: Int, Y: Int)
 method b() 
 {
     var x: Int;
+	//forall x :: forall y :: (x + y) * (1 - y) > 0
     var y: Int;
+	//forall y :: (x + y) * (1 - y) > 0
 
-    //assume (x + y) * (1 - y) > 0;
-    assume (x + y > 0 && y < 1) || (x + y < 0 && y > 1);
-
+    assume (x + y) * (1 - y) > 0;
+    //assume (x + y > 0 && y < 1) || (x + y < 0 && y > 1);
+	//assume R = R ==> Q 
+	//assume (x + y) * (1 - y) > 0
+	
     x := x + y;
+	//WP(S1, WP(S2,Q)) = WP(x := x + y, x * (1 - y) > 0) = WP(S, Q) = Q[x/a] = (x * (1 - y) > 0)[x/(x + y)] = (x + y) * (1 - y) > 0
     y := x * y;
+	//WP(S1, WP(S2, Q)) = WP(x := x + y, WP(y := x * y, x > y))
+	//WP(y := x * y, x > y) = WP(S, Q) = Q[x/a] = (x > y)[(x * y)/y] = x > x * y = x * (1 - y) > 0
 
     assert x > y;
+	//WP(S, Q) = WP(assert(x > y), Q) = R && Q = x > y && Q = x > y
 }
 
 /*
@@ -52,10 +63,12 @@ method b()
 method c() 
 {
     var x: Int;
+	//forall x :: forall y :: (y > 5 => x > 7) && (y <= 5 => x < y - 7)
     var y: Int;
+	//forall y :: (y > 5 => x > 7) && (y <= 5 => x < y - 7)
 
-    //assume (y > 5 ==> x > 7) && (y <= 5 ==> x < y - 7);
-    assume (y > 5 && x > 7) || (y <= 5 && y > x + 7);
+    assume (y > 5 ==> x > 7) && (y <= 5 ==> x < y - 7);
+    //assume (y > 5 && x > 7) || (y <= 5 && y > x + 7);
 
 
     if (y > 5) {
@@ -63,8 +76,13 @@ method c()
     } else {
         x := y - x;
     }
+	//S1 [] S2 = WP(S1, Q) && WP(S2, Q) = WP(if B then S1 else S2) = (B => WP(S1, Q)) && (!B => WP(S2, Q))
+	//WP(S1, Q) = WP(y := x - y, x > 7) = (x > 7)[y/(x - y)] = x > 7
+	//WP(S2, Q) = WP(x: = y - x, x > 7) = (x > 7)[x/(y - x)] = y - x > 7 = x < y - 7
+	//(y > 5 => x > 7) && (y <= 5 => x < y - 7)
 
     assert x > 7;
+	//assert R = R && Q = assert x > 7
 }
 
 /*
@@ -81,13 +99,19 @@ method d(x: Int) returns (y: Int)
     requires x >= 17 || x <= 3
     ensures y % 2 == 0
 {
-    if (x < 17) {
-        if (x > 3) {
-            y := 1;
+    if (x < 17) { //S1
+        if (x > 3) { 
+            y := 1; //S2
+			//WP(y := 1, y % 2 == 0) => (y % 2 == 0)[y/1] => 1 % 2 == 0 => false
         } else {
-            y := 2;   
+            y := 2; //S3
+			//WP(y := 2, y % 2 == 0) => (y % 2 == 0)[y/2] => 2 % 2 == 0 => true
         }
+		//S2 [] S3 = WP(S2, Q) && WP(S3, Q) = WP(if B then S2 else S3) = (B => WP(S2, Q)) && (!B => WP(S3, Q))
+		//(x > 3 => false) && (x <=3 => true) => x <= 3
     } else {
-        y := 6
+        y := 6 //S4
+		WP(y := 6, y % 2 == 0) => (y % 2 == 0)[y/6] => 6 % 2 == 0 => true
     }
+	//WP(if x < 17 then S1 else S4, y % 2 == 0) = (x < 17 ==> x <= 3) && (x >= 17 ==> true) => x <= 3 || x >= 17
 }

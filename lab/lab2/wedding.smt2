@@ -33,6 +33,7 @@
     (and
         (=> CL (not BM))
         (=> CM (not BR))
+        BL
     )
 )
 

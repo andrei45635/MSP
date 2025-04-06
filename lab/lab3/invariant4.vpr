@@ -1,0 +1,23 @@
+method int_sqrt_fast() {
+    var n: Int
+    assume n >= 0
+
+    var res: Int
+    res := 0
+    var x: Int := 1
+
+    // { n >= 0 && res = 0 && x = 1 ==> x = (res+1)^2 && res^2 <= n }
+    while (x < n)
+        invariant x == (res+1)*(res+1) && res * res <= n
+    {
+        // { x = (res+1)^2 < n ⇒ (res+1)^2 < n ⇒ res^2 < n }
+        x := x + 2*res + 3
+        // { old x = (res+1)^2 ⇒ new x = (res+1)^2 + 2*res + 3 = (res+2)^2 }
+
+        res := res + 1
+        // { new res = old res + 1 ⇒ now x = (new res+1)^2 and new res^2 <= n }
+    }
+    // { loop ends when x >= n ⇒ (res+1)^2 >= n ⇒ n <= (res+1)^2 and res^2 <= n }
+
+    assert res * res <= n && n <= (res+1)*(res+1)
+}

@@ -1,0 +1,33 @@
+method main() {
+    var n: Int
+    var m: Int
+    var res: Int
+
+    assume n >= 0 && m >= 0
+
+    var x: Int := n
+    var y: Int := m
+    res := 0
+
+    // { n >= 0 && m >= 0 && x >= 0 && y >= 0 && res + x*y == n*m }
+    while (x > 0)
+        invariant res + x * y == n * m
+        // { x > 0 && x >= 0 && y >= 0 && res + x*y == n*m }
+    {
+        // { x % 2 == 1 => (res + y) + (x-1)*y == n*m, otherwise res + x*y == n*m }
+        if (x % 2 == 1) {
+            // { x odd => adding y preserves res + x*y == n*m }
+            res := res + y
+            // { now res + (x-1)*y == n*m }
+        }
+
+        // { dividing x by 2 and doubling y still preserves res + x*y == n*m }
+        x := x / 2
+        // { x was halved }
+        y := y * 2
+        // { y was doubled }
+    }
+    // { x == 0 => res == n*m }
+
+    assert res == n * m
+}

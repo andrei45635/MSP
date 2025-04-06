@@ -99,6 +99,7 @@ method d(x: Int) returns (y: Int)
     requires x >= 17 || x <= 3
     ensures y % 2 == 0
 {
+    //x < 17 => x <= 3
     if (x < 17) { //S1
         if (x > 3) { 
             y := 1; //S2
@@ -108,10 +109,54 @@ method d(x: Int) returns (y: Int)
 			//WP(y := 2, y % 2 == 0) => (y % 2 == 0)[y/2] => 2 % 2 == 0 => true
         }
 		//S2 [] S3 = WP(S2, Q) && WP(S3, Q) = WP(if B then S2 else S3) = (B => WP(S2, Q)) && (!B => WP(S3, Q))
-		//(x > 3 => false) && (x <=3 => true) => x <= 3
+        //WP(y := 6, y % 2 == 0) => (y % 2 == 0)[y/6] => 6 % 2 == 0 => true
+        //y % 2 == 0
     } else {
-        y := 6 //S4
-		WP(y := 6, y % 2 == 0) => (y % 2 == 0)[y/6] => 6 % 2 == 0 => true
+         //WP(if x < 17 then S1 else S4, y % 2 == 0) = (x < 17 ==> x <= 3) && (x >= 17 ==> true) => x <= 3 || x >= 17
+        y := 6 
+        //y % 2 == 0
     }
-	//WP(if x < 17 then S1 else S4, y % 2 == 0) = (x < 17 ==> x <= 3) && (x >= 17 ==> true) => x <= 3 || x >= 17
+    //y % 2 == 0
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //(x > 3 => false) && (x <=3 => true) => x <= 3

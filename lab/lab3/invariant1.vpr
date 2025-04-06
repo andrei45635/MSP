@@ -1,0 +1,29 @@
+method main() {
+    var M: Int
+    var N: Int
+    var res: Int
+
+    assume N > 0 && M >= 0
+
+    var m: Int := M
+    res := 0
+
+    // { N > 0 && M >= 0 && M == res*N + m && m >= 0 }
+    while (m >= N) 
+        invariant M == res * N + m && m >= 0
+        // { m >= N && M == res*N + m && m >= 0 } 
+    {
+        // { m >= N && M == res*N + m && m >= 0 } 
+        //    => (m - N) >= 0 
+        //    => M == (res + 1)*N + (m - N)
+        m := m - N
+        
+        // { M == (res + 1)*N + m && m >= 0 }
+        res := res + 1
+        
+        // { M == res*N + m && m >= 0 }
+    }
+
+    // { m < N && M == res*N + m && m >= 0 }
+    assert M == res * N + m
+}

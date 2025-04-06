@@ -1,0 +1,19 @@
+method int_sqrt() {
+    var n : Int
+    assume n >= 0
+
+    var res: Int
+    res := 0
+
+    // n >= 0 && res^2 <= n
+    while ((res + 1) * (res + 1) < n)
+        invariant res * res <= n
+    {
+        // n >= 0 && res^2 <= n && (res+1)^2 < n => after increment, (res+1)^2 <= n
+        res := res + 1
+        // => res^2 <= n
+    }
+    // => res^2 <= n && n <= (res+1)^2
+
+    assert res * res <= n && n <= (res + 1) * (res + 1)
+}

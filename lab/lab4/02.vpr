@@ -1,0 +1,14 @@
+method M(n: Int) returns (r: Int)
+    requires n >= 0
+    ensures 100 < n ==> r == n - 10
+    ensures n <= 100 ==> r == 91
+    decreases n <= 100 ? 1 : 0 , n <= 100 ? 100 - n : 0 
+    //decreases must strictly drop on every recursive call, which is enough to establish that the call tree is finite
+{
+    if(n > 100) {
+        r := n - 10
+    } else {
+        r := M(n + 11)
+        r := M(r)
+    }
+}

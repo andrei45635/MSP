@@ -1,0 +1,35 @@
+// my very own multiplication function 
+function X(n: Int, m: Int): Int 
+  requires n >= 0 && m >= 0
+{
+  m == 0 ? 0 : n + X(n, m-1)
+}
+
+method lemma_X_times(n: Int, m: Int)
+  requires n >= 0 && m >= 0
+  ensures  X(n, m) == n * m
+  decreases m
+{
+  if (m == 0) {
+    assert X(n, m) == 0;
+    assert n * m    == 0;
+  } else {
+    lemma_X_times(n, m - 1);                   // IH: X(n,m-1) = n*(m-1)
+
+    assert X(n, m) == n + X(n, m - 1);         // unfold one step
+    assert X(n, m) == n + n * (m - 1);         // by IH
+    assert n *  m  == n + n * (m - 1);         // arithmetic (distribution)
+
+    assert X(n, m) == n * m;                   // transitivity
+  }
+}
+
+method lemma_X_commutative(n: Int, m: Int)
+  requires n >= 0 && m >= 0
+  ensures X(n, m) == X(m, n)
+{
+  lemma_X_times(n, m);     // X(n,m) = n*m
+  lemma_X_times(m, n);     // X(m,n) = m*n
+
+  assert n * m == m * n;   // built-in commutativity of * over ℤ
+}

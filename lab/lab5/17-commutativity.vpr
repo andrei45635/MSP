@@ -12,7 +12,7 @@ method lemma_X_times(n: Int, m: Int)
 {
   if (m == 0) {
     assert X(n, m) == 0;
-    assert n * m    == 0;
+    assert n * m == 0;
   } else {
     lemma_X_times(n, m - 1);                   // IH: X(n,m-1) = n*(m-1)
 

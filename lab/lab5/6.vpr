@@ -1,3 +1,4 @@
+//Botond Ambrus - 248/1
 field f: Int
 
 method alias(a: Ref, b: Ref)

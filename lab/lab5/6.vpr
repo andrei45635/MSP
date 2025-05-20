@@ -6,5 +6,7 @@ method alias(a: Ref, b: Ref)
 {
   a.f := 5;
   b.f := 7;
-  assert a == b || a.f == 5;
+  // assert a.f == 5;
+  assert a != b ==> (a.f == 5 && b.f == 7);
+  assert a == b ==> (a.f == 7);
 }

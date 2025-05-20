@@ -1,11 +1,111 @@
-// Flyweight
-field val: Int
+/*****************************************************************
+ * 05-flyweight.vpr
+ *
+ *  A   factory       keeps at most one cached    flyweight.
+ *  Each call to      get
+ *    – returns the cached object (creating it on first use) and
+ *    – hands the caller *read* permission to the flyweight’s val
+ *      field, while still keeping some read permission itself.
+ *
+ *  Thanks to fractional permissions the method can be called
+ *  arbitrarily many times: on every call we split the factory’s
+ *  current share in half (½, ¼, ⅛, …).
+ *****************************************************************/
 
-// Factory
-field cache: Ref
+/*-------------------------  data  ------------------------------*/
+field val   : Int        // payload of a flyweight
+field cache : Ref        // factory’s single slot
 
-predicate factory(this: Ref)
+/*---------------------  read-only handle  ----------------------*
+ *  fly(obj,p) owns the *fraction p* of obj.val  (0<p≤1) and
+ *  remembers that the value stored in the field is always 0.
+ *--------------------------------------------------------------*/
+predicate fly(obj: Ref, p: Perm)
+{
+    0 < p && p <= 1                // numeric constraint
+  && acc(obj.val, p)             // read-permission to the field
+  && obj.val == 0                // field content
+}
 
-method get(this: Ref) returns (fly: Ref)
-    requires factory(this)
-    ensures  factory(this)
+/*------------------------  factory  ---------------------------*
+ *  The factory owns its cache pointer and, if that pointer is
+ *  non-null, *some* (existential) fraction of the flyweight’s
+ *  val field.
+ *--------------------------------------------------------------*/
+predicate factory(f: Ref)
+{
+  acc(f.cache) &&
+  (f.cache != null ==> (exists q: Perm :: 0 < q && fly(f.cache, q)))
+}
+
+/*-------------------------  get  ------------------------------*
+ *  Returns the (unique) flyweight, guarantees the caller some
+ *  read permission to its val field, and re-establishes the
+ *  factory invariant.
+ *--------------------------------------------------------------*/
+method get(f: Ref) returns (fw: Ref)
+  requires factory(f)
+  ensures  factory(f)                               // factory usable again
+       && (exists q: Perm :: fly(fw, q))            // caller can read fw.val
+{
+  unfold factory(f);
+
+  if (f.cache == null) {
+      /*-----------  cache miss – allocate object  -------------*/
+      fw := new();
+      inhale acc(fw.val);          // full permission 1
+      fw.val := 0;                 // initialise payload
+
+      /* split 1 into ½ (for caller) and ½ (kept by factory) */
+      exhale acc(fw.val, 1/2);     // caller’s share
+      fold fly(fw, 1/2);           // factory’s share
+      f.cache := fw;
+  }
+  else {
+      /*-------------  cache hit – reuse object  ---------------*/
+      fw := f.cache;
+
+      /* factory currently hides an (unknown) fraction p        */
+      var p: Perm;                 // fresh permission variable
+      unfold fly(fw, p);           // exposes acc(fw.val, p)
+
+      /* give *half* of p to the caller, keep the rest */
+      exhale acc(fw.val, p/2);     // caller gets p/2
+      fold   fly(fw, p/2);         // factory keeps p/2
+  }
+
+  fold factory(f);                 // restore invariant
+}
+
+/*-------------------------  demo  -----------------------------*
+ *  Shows that callers really obtain read permission and that
+ *  the method is safe to invoke more than once.
+ *--------------------------------------------------------------*/
+method client()
+{
+  var fac: Ref; 
+  var a: Ref;
+  var b : Ref;
+  var p1: Perm;
+  var p2: Perm;          // will hold the permissions we get back
+
+  /* build empty factory */
+  fac := new();
+  inhale acc(fac.cache);
+  fac.cache := null;
+  fold factory(fac);
+
+  /*********** first call ***********/
+  a := get(fac);
+
+  unfold fly(a, ?p1);           // ?p1  ← bind the unknown fraction
+  assert a.val == 0;            // we can read because fly(a,p1) gives acc
+  fold   fly(a,  p1);           // use p1 (no ?) when folding!
+
+  /*********** second call **********/
+  b := get(fac);
+
+  unfold fly(b, ?p2);           // introduces p2
+  assert b.val == 0;
+  fold   fly(b,  p2);           // fold with p2 (again, no ?)
+}

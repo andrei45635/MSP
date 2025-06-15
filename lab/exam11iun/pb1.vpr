@@ -1,0 +1,39 @@
+function gcd(x: Int, y: Int): Int
+  requires x > 0 && y > 0
+  ensures result > 0
+  ensures x % result == 0
+  ensures y % result == 0
+  //ensures forall d: Int :: d > 0 && x % d == 0 && y % d == 0 ==> d <= result
+{
+  x == y ? x : (x > y ? gcd(x - y, y) : gcd(x, y - x))
+}
+
+// b) (1p) Verify partial correctness
+// c) (1p) Show termination
+method euclid(n: Int, m: Int) returns (res: Int)
+  requires n > 0 && m > 0
+  ensures res == gcd(n, m)
+  decreases max(n, m)  // termination measure
+{
+  var a: Int := n
+  var b: Int := m
+  
+  while (a != b)
+    invariant a > 0 && b > 0
+    invariant gcd(a, b) == gcd(n, m)
+    decreases max(a, b)  // termination measure
+  {
+    if (a > b) {
+      a := a - b
+    } else {
+      b := b - a
+    }
+  }
+  res := a
+}
+
+// Helper function for termination
+function max(x: Int, y: Int): Int
+{
+  x > y ? x : y
+}

@@ -15,12 +15,26 @@ function mirror(t: Tree): Tree
   is_leaf(t) ? t : node(mirror(right(t)), mirror(left(t)))
 }
 
-function size(t: Tree): Int
-    ensures size(t) >= 0
-    ensures !is_leaf(t) ==> size(left(t)) < size(t)
-    ensures !is_leaf(t) ==> size(right(t)) < size(t)
+function max(a: Int, b: Int): Int
 {
-  is_leaf(t) ? 1 : size(left(t)) + size(right(t))
+    a > b ? a : b
+}
+
+function height(t: Tree): Int
+    ensures result >= 0
+{
+    is_leaf(t) ? 0 : 1 + max(height(left(t)), height(right(t)))
+}
+
+function size(t: Tree): Int
+    ensures result >= 0
+    ensures !is_leaf(t) ==> size(left(t)) < result
+    ensures !is_leaf(t) ==> size(right(t)) < result
+    // ensures !is_leaf(t) ==> size(left(t)) < result
+    // ensures !is_leaf(t) ==> size(right(t)) < result
+    decreases height(t)
+{
+  is_leaf(t) ? 1 : 1 + size(left(t)) + size(right(t))
 }
 
 method client_mirror_mirror() {
@@ -39,7 +53,7 @@ method client_mirror_size() {
 
 method lemma_mirror_mirror(t: Tree)
     ensures mirror(mirror(t)) == t
-    //decreases size(t)
+    decreases size(t)
 {
     // we do structural induction here;
     // terminates since we only invoke the induction
@@ -62,7 +76,7 @@ method lemma_mirror_mirror(t: Tree)
 
 method lemma_mirror_size(t: Tree) 
     ensures size(mirror(t)) == size(t)
-    //decreases size(t)
+    decreases size(t)
 {
     var v: Int := size(t); assert v >= 0
     if (is_leaf(t)) {

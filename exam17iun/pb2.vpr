@@ -41,19 +41,15 @@ method lemma_mirror_mirror(t: Tree)
     ensures mirror(mirror(t)) == t
     decreases size(t)
 {
-    var v: Int 
-    v := size(t)
-    assert v >= 0
-
     if (is_leaf(t)) {
         assert mirror(t) == t  
         assert mirror(mirror(t)) == mirror(t)  
         assert mirror(mirror(t)) == t 
     } else {
-        assert size(left(t)) < v
+        assert size(left(t)) < size(t)
         lemma_mirror_mirror(left(t))
 
-        assert size(right(t)) < v
+        assert size(right(t)) < size(t)
         lemma_mirror_mirror(right(t))
     }
 }
@@ -62,17 +58,15 @@ method lemma_mirror_size(t: Tree)
     ensures size(mirror(t)) == size(t)
     decreases size(t)
 {
-    var v: Int 
-    v := size(t)
-    assert v >= 0
+
     if (is_leaf(t)) {
         assert mirror(t) == t 
         assert size(mirror(t)) == size(t)  
     } else {
-        assert size(left(t)) < v
+        assert size(left(t)) < size(t)
         lemma_mirror_size(left(t))
 
-        assert size(right(t)) < v
+        assert size(right(t)) < size(t)
         lemma_mirror_size(right(t))
     }
 }
